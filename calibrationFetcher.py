@@ -4,8 +4,9 @@ import datetime
 import os
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
-import pandas as pd
+import xlsxwriter as xl
 import openpyxl
+import csv
 
 def remove_values_from_list(the_list, val):
    return [value for value in the_list if value != val]
@@ -89,7 +90,52 @@ def search_cal_file_for_referenced_cal_names():
             f0.write('\n\n\n')
 
 def write_to_excel():
-    pass
+
+    with open('out.txt', 'r') as file:
+
+        # Extract the labels for each line, Cal names, empty lines, date, file data is taken from
+        row_labels = []
+        temp_array = []
+        array_of_arrays = []
+        for index, line in enumerate(file):
+            line = line.strip('\n')
+            if len(line) > 1:  # If line is not blank
+                if line.startswith('D'):
+                    row_labels.append(line)
+                elif line[:1].isdigit():
+                    row_labels.append(line)
+                else:
+                    split_line = line.split()
+                    row_labels.append(split_line[0])
+                    for item in split_line:
+                        if item.isdecimal():
+                            temp_array.append(item)
+                    array_of_arrays.append(temp_array)
+            else:
+                row_labels.append(line)
+        #print(array_of_arrays)
+
+        input_file = 'out.txt'
+
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.worksheets[0]
+        split_rows = []
+
+        with open(input_file, 'r') as data:  # read in text mode
+            reader = csv.reader(data, delimiter='\t')
+            for index, row in enumerate(data.readlines()):
+                if '/' or ':' not in row:
+                    row = row.replace('=','')
+                    row = row.replace('[', '')
+                    row = row.replace(']', '')
+                    row = row.replace(';', '')
+                    split_rows = list(row.split())
+                    print(type(split_rows))
+                worksheet.append(split_rows)
+            else:
+                worksheet.insert_rows(index)
+            workbook.save('Calibrations.xlsx')
+
 
 # Author: Cody Palmer
 # Last modified by: Cameron Floyd
@@ -156,7 +202,7 @@ for subdir, dirs, files in os.walk(rootdir):
             search_cal_file_for_referenced_cal_names()
 
 
-        write_to_excel()
+write_to_excel()
 
 print(f"\nAll Finished. Your calibrations are found in out.txt in the same folder as this .py file.\n{wrong_file_counter} files in that folder were not .m files and were not read.")
 
