@@ -22,13 +22,18 @@ def removecomments(calibrations, numLines):
     return calibrations
 
 
-def setup_out_file():
+def setup_files():
+    with open(tempfile, 'w+') as file:
+        pass
+
+    with open(calibrationTxtFile, 'w+') as file:
+        pass
+
     with open(outFile, 'w+') as f4:
         f4.truncate(0)
         datestamp = datetime.datetime.now()
         date_time = datestamp.strftime("%m/%d/%Y, %H:%M:%S\n")
         f4.write(date_time)
-
 
 def multi_line_cal_to_single_line(calibrations, numLines):
     for index in range(numLines, 0, -1):
@@ -117,22 +122,19 @@ for subdir, dirs, files in os.walk(rootdir):
 
         ### File Preparation ###
 
-        ### Initialize Files Needed ###
-
-        tempFile = 'temp.txt'
-        with open(tempFile, 'w+') as file:
-            pass
-        calibrationTxtFile = 'calibrations.txt'
-        with open(calibrationTxtFile, 'w+') as file:
-            pass
+        ### Initialize Names of Files Needed ###
+        tempfile = 'temp.txt'
         outFile = 'out.txt'
         referenceFile = 'references.txt'
+        calibrationTxtFile = 'calibrations.txt'
+        #Create/overwrite temp file, calibrationsfile, outfile, and add timedate to outfile
 
-        # create/overwrite output file and add timedate to the top
-        setup_out_file()
+
+
+        setup_files()
 
         # copy matlab file to temp file
-        shutil.copyfile(rootdir + '/' + inputFile, tempFile)
+        shutil.copyfile(rootdir + '/' + inputFile, tempfile)
 
         # create/overwrite calibrations file
         with open(calibrationTxtFile, 'w+') as f4:
@@ -141,7 +143,7 @@ for subdir, dirs, files in os.walk(rootdir):
         ### Data Manipulation ###
 
         # assign values to calibrations variable
-        with open(tempFile, 'r') as f1:
+        with open(tempfile, 'r') as f1:
             calibrations = f1.readlines()
 
         numLines = sum(1 for line in calibrations) - 1
