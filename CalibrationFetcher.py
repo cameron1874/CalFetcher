@@ -6,7 +6,6 @@ from tkinter import Tk
 from tkinter.filedialog import askdirectory
 import xlsxwriter as xl
 import openpyxl
-import csv
 
 def remove_values_from_list(the_list, val):
    return [value for value in the_list if value != val]
@@ -61,14 +60,15 @@ def write_calibrations_file(calibrations, numLines):
             f2.write(calibrations[index])
 
 def search_cal_file_for_referenced_cal_names():
+    array = []
+    with open(outFile, 'a') as f0:
         with open(referenceFile,'r') as f2:
             f0.write('Data based on input file: '+inputFile+'\n\n')
             for index in f2:
                 cal_names = index.splitlines()
                 for index2 in range(0,sum(1 for line in cals_text)-1):
-                    str2 = cals_text[index2]
-                    cal_text_indexes = str2.find(cal_names[0].strip())
-
+                    str2 = (cals_text[index2]).lower()
+                    cal_text_indexes = str2.find((cal_names[0].strip()).lower())
                     # split header from string, header is separated by '.'
                     if '.' not in str2:
                         continue
@@ -83,7 +83,7 @@ def search_cal_file_for_referenced_cal_names():
                     else:
                         flag = 0
                 if flag < 1: # not found
-                   f0.write(cal_names[0] + '\tNOT FOUND\n')
+                   f0.write(cal_names[0] + '\tNOT_FOUND\n')
                    array.append(cal_names[0])
                 else:
                     flag = 0 # found string in nested loop
@@ -91,50 +91,24 @@ def search_cal_file_for_referenced_cal_names():
 
 def write_to_excel():
 
-    with open('out.txt', 'r') as file:
+    input_file = 'out.txt'
 
-        # Extract the labels for each line, Cal names, empty lines, date, file data is taken from
-        row_labels = []
-        temp_array = []
-        array_of_arrays = []
-        for index, line in enumerate(file):
-            line = line.strip('\n')
-            if len(line) > 1:  # If line is not blank
-                if line.startswith('D'):
-                    row_labels.append(line)
-                elif line[:1].isdigit():
-                    row_labels.append(line)
-                else:
-                    split_line = line.split()
-                    row_labels.append(split_line[0])
-                    for item in split_line:
-                        if item.isdecimal():
-                            temp_array.append(item)
-                    array_of_arrays.append(temp_array)
-            else:
-                row_labels.append(line)
-        #print(array_of_arrays)
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.worksheets[0]
+    split_rows = []
 
-        input_file = 'out.txt'
-
-        workbook = openpyxl.Workbook()
-        worksheet = workbook.worksheets[0]
-        split_rows = []
-
-        with open(input_file, 'r') as data:  # read in text mode
-            reader = csv.reader(data, delimiter='\t')
-            for index, row in enumerate(data.readlines()):
-                if '/' or ':' not in row:
-                    row = row.replace('=','')
-                    row = row.replace('[', '')
-                    row = row.replace(']', '')
-                    row = row.replace(';', '')
-                    split_rows = list(row.split())
-                    print(type(split_rows))
-                worksheet.append(split_rows)
-            else:
-                worksheet.insert_rows(index)
-            workbook.save('Calibrations.xlsx')
+    with open(input_file, 'r') as data:  # read in text mode
+        for index, row in enumerate(data.readlines()):
+            if '/' or ':' not in row:
+                row = row.replace('=','')
+                row = row.replace('[', '')
+                row = row.replace(']', '')
+                row = row.replace(';', '')
+                split_rows = list(row.split())
+            worksheet.append(split_rows)
+        else:
+            worksheet.insert_rows(index)
+        workbook.save('Calibrations.xlsx')
 
 
 # Author: Cody Palmer
@@ -197,14 +171,12 @@ for subdir, dirs, files in os.walk(rootdir):
             cals_text = f3.readlines()
 
         # search for references
-        array = []
-        with open(outFile,'a') as f0:
-            search_cal_file_for_referenced_cal_names()
+        search_cal_file_for_referenced_cal_names()
 
 
 write_to_excel()
 
-print(f"\nAll Finished. Your calibrations are found in out.txt in the same folder as this .py file.\n{wrong_file_counter} files in that folder were not .m files and were not read.")
+print(f"\nAll Finished. Your calibrations are found in Calibration.xslx in the same folder as this .py file.\n{wrong_file_counter} files in that folder were not .m files and were not read.")
 
 
 
