@@ -71,7 +71,7 @@ def search_cal_file_for_referenced_cal_names():
 
     with open(outFile, 'a') as f0:
         with open(referenceFile, 'r') as f2:
-            f0.write('Data_based_on_input_file: ' + inputFile + '\n\n')
+            f0.write('Data_based_on_input_file: ' + inputFile + '\n')
             for index in f2:
                 cal_reference_array.append(index)
                 cal_names = index.splitlines()
@@ -97,7 +97,7 @@ def search_cal_file_for_referenced_cal_names():
                     array.append(cal_names[0])
                 else:
                     flag = 0  # found string in nested loop
-            f0.write('\n\n\n')
+            f0.write('NEXT_FILE\n')
     return cal_reference_array
 def size_columns_to_fit(worksheet):
     for ind, column in enumerate(worksheet.columns):
