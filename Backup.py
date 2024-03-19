@@ -139,10 +139,14 @@ def write_to_excel(cal_reference_array):
                 continue
             elif '.m' in row:
                 continue
+            elif len(row) < 2:
+                row = [row]
+                worksheet.append(row)
+                continue
+            row = row.replace('=', '')
+            row = row.replace(';', '')
                     # Write cals that are not arrays (no brackets) into first page of Excel
             if '[' and ']' in row:
-                row = row.replace('=', '')
-                row = row.replace(';', '')
                 # Find Calibrations that are arrays
                 row = row.replace('[', '')
                 row = row.replace(']', '')
@@ -155,27 +159,24 @@ def write_to_excel(cal_reference_array):
                     array_cal_names.append(split_array_row[0])
                 del split_array_row[0]
                 split_array_rows.append(split_array_row)
+
+                # Operations to be performed if cal is not an array
             else:
-                if len(row) < 2 :
-                    row = [row]
-                    worksheet.append(row)
-                    continue
+                split_row = list(row.split())
+                if first_row_count < (len(cal_reference_array)- len(array_cal_names)):
+                    worksheet.append(split_row)
+                    first_row_count += 1
                 else:
-                    split_row = list(row.split())
-                    if first_row_count < (len(cal_reference_array)- len(array_cal_names)):
-                        worksheet.append(split_row)
-                        first_row_count += 1
-                    else:
-                        for item in split_row:
-                            if 'c' or 'k' in item:
-                                split_row.remove(item)
-                                print(split_row)
-                                #for i0, file in enumerate(files):
-                                    #worksheet.cell(2, 2+i0, file)
-                                #upper_range = len(cal_reference_array) - len(array_cal_names)
-                                #for i9 in range(0,upper_range):
-                                    #print(split_row)
-                                    #worksheet.cell(4+i9, 2, str(split_row))
+                    for item in split_row:
+                        if 'c' or 'k' in item:
+                            split_row.remove(item)
+                            print(split_row)
+                            #for i0, file in enumerate(files):
+                                #worksheet.cell(2, 2+i0, file)
+                            #upper_range = len(cal_reference_array) - len(array_cal_names)
+                            #for i9 in range(0,upper_range):
+                                #print(split_row)
+                                #worksheet.cell(4+i9, 2, str(split_row))
                 size_columns_to_fit(worksheet)
 
         # Iterate over Cal names list and create sheet for each one
