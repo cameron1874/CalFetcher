@@ -70,6 +70,8 @@ def write_calibrations_file(calibrations, numlines):
 def search_cal_file_for_referenced_cal_names():
 
     cal_reference_array = []
+    all_stripped_cal_names_per_file = []
+    cal_names = []
     array = []
 
     with open(outFile, 'a') as f0:
@@ -77,30 +79,39 @@ def search_cal_file_for_referenced_cal_names():
             f0.write('Data_based_on_input_file: ' + inputFile + '\n')
             for index in f2:
                 cal_reference_array.append(index)
-                cal_names = index.splitlines()
+                cal_full_names = index.splitlines()
                 for index2 in range(0, sum(1 for line in cals_text) - 1):
                     str2 = (cals_text[index2]).lower()
-                    cal_text_indexes = str2.find((cal_names[0].strip()).lower())
+                    cal_text_indexes = str2.find((cal_full_names[0].strip()).lower())
 
                     # split header from string, header is separated by '.'
                     if '.' not in str2:
                         continue
                     else:
                         header, str2 = str2.split('.', 1)
+                    split_str2 = str2.split()
 
                     if cal_text_indexes != -1:
+                        # Make array containing all cleaned up cal names
+                        if split_str2[0] in cal_names:
+                            pass
+                        else:
+                            cal_names.append(split_str2[0])
                         f0.write(str2)
+                        all_stripped_cal_names_per_file.append(str2)
                         flag = 1
                         break
                     else:
                         flag = 0
                 if flag < 1:  # not found
-                    f0.write(cal_names[0] + '\tNOT_FOUND\n')
-                    array.append(cal_names[0])
+                    #all_stripped_cal_names_per_file.append()
+                    f0.write(cal_full_names[0] + '\tNOT_FOUND\n')
+                    array.append(cal_full_names[0])
                 else:
                     flag = 0  # found string in nested loop
             f0.write('NEXT_FILE\n')
-    return cal_reference_array
+        #print(all_stripped_cal_names_per_file)
+    return cal_reference_array, cal_names
 
 
 def size_columns_to_fit(worksheet):
@@ -174,7 +185,7 @@ def write_to_excel(cal_reference_array):
                     for item in split_row:
                         if 'c' or 'k' in item:
                             split_row.remove(item)
-                            print(split_row)
+                            #print(split_row)
                             # for i0, file in enumerate(files):
                             # worksheet.cell(2, 2+i0, file)
                             # upper_range = len(cal_reference_array) - len(array_cal_names)
@@ -276,7 +287,10 @@ for subdir, dirs, files in os.walk(rootdir):
             cals_text = f3.readlines()
 
         # search for references
-        cal_reference_array = search_cal_file_for_referenced_cal_names()
+        cal_reference_array, cal_names = search_cal_file_for_referenced_cal_names()
+
+
+    print(cal_names)
 
 write_to_excel(cal_reference_array)
 
