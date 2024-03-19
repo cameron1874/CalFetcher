@@ -122,7 +122,7 @@ def write_to_excel():
     split_array_rows = []
     array_cal_names = []
     worksheet_names = []
-    calibration_index = []
+    calibration_arrays = []
 
     with open(input_file, 'r') as data:  # read in text mode
         for index, row in enumerate(data.readlines()):
@@ -150,6 +150,8 @@ def write_to_excel():
 
         # Iterate over Cal names list and create sheet for each one
         for i, cal in enumerate(array_cal_names):
+            calibration_arrays.append(split_array_rows[i::len(array_cal_names)])
+
             # Excel sheets can only have 31char length Titles
             if len(cal) > 31:
                 old_name = cal
@@ -158,6 +160,7 @@ def write_to_excel():
                 cal = old_name
             elif len(cal) <= 31:
                 workbook.create_sheet(title=cal, index=(i+1))
+
             worksheet_names = workbook.get_sheet_names()
             worksheet = workbook[worksheet_names[i+1]]
             cal = [cal]
@@ -165,13 +168,20 @@ def write_to_excel():
             worksheet.append(cal)
             worksheet.append(empty_line)
 
-
-
-
             for ind, filename in enumerate(files):
                 filename = [filename]
                 worksheet.append(filename)
 
+            for i2, array in enumerate(calibration_arrays[i]):
+                for i3, value in enumerate(array):
+                    worksheet.cell(row=3+i2, column=2+i3,value= value)
+
+
+
+
+
+
+            print(calibration_arrays)
             size_columns_to_fit(worksheet)
         else:
             worksheet.insert_rows(index)
