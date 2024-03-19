@@ -1,10 +1,10 @@
 import shutil
-import numpy
+# import numpy
 import datetime
 import os
-from tkinter import Tk
+# from tkinter import Tk
 from tkinter.filedialog import askdirectory
-import xlsxwriter as xl
+# import xlsxwriter as xl
 import openpyxl
 
 
@@ -12,14 +12,14 @@ def remove_values_from_list(the_list, val):
     return [value for value in the_list if value != val]
 
 
-def removecomments(calibrations, numLines):
-    for index in range(0, numLines):
-        tmpStr = calibrations[index]
-        strIdx = tmpStr.find('%')
-        if strIdx != -1:
-            tmpStr = tmpStr[0:strIdx - 1] + '\n'
-            calibrations[index] = tmpStr
-    return calibrations
+def removecomments(cals, numlines):
+    for index in range(0, numlines):
+        tmpstr = cals[index]
+        stridx = tmpstr.find('%')
+        if stridx != -1:
+            tmpstr = tmpstr[0:stridx - 1] + '\n'
+            cals[index] = tmpstr
+    return cals
 
 
 def setup_out_file():
@@ -31,20 +31,21 @@ def setup_out_file():
     with open(calibrationTxtFile, 'w+') as file:
         pass
 
-    with open(outFile, 'w+') as f4:
+    with open(outFile, 'w+') as f5:
         datestamp = datetime.datetime.now()
         date_time = datestamp.strftime("%m/%d/%Y___%H:%M:%S\n")
-        f4.write(date_time)
+        f5.write(date_time)
 
-def multi_line_cal_to_single_line(calibrations, numLines):
-    for index in range(numLines, 0, -1):
-        curStr = calibrations[index]
-        closedBracket = curStr.find(']')
-        openBracket = curStr.find('[')
+
+def multi_line_cal_to_single_line(calibrations, numlines):
+    for index in range(numlines, 0, -1):
+        curstr = calibrations[index]
+        closedbracket = curstr.find(']')
+        openbracket = curstr.find('[')
         count = 0
         # if closedBracket != -1 and openBracket == -1: # Detecting multiple lines (note reading from the bottom up)
-        if closedBracket != -1 and openBracket == -1:  # Detecting multiple lines (note reading from the bottom up)
-            while openBracket == -1:
+        if closedbracket != -1 and openbracket == -1:  # Detecting multiple lines (note reading from the bottom up)
+            while openbracket == -1:
                 # move current index-count to index-count-1
                 calibrations[index - count - 1] = calibrations[index - count - 1].strip() + ' ; ' + calibrations[
                     index - count]
@@ -53,16 +54,18 @@ def multi_line_cal_to_single_line(calibrations, numLines):
 
                 # conditions for the next check
                 count = count + 1
-                curStr2 = calibrations[index - count];
-                openBracket = curStr2.find('[')
+                curstr2 = calibrations[index - count]
+                openbracket = curstr2.find('[')
             index = index - count
     calibrations = remove_values_from_list(calibrations, 'DELETE')
 
-def write_calibrations_file(calibrations, numLines):
-    numLines = sum(1 for line in calibrations) - 1
+
+def write_calibrations_file(calibrations, numlines):
+    numlines = sum(1 for line in calibrations) - 1
     with open(calibrationTxtFile, 'w') as f2:
-        for index in range(0, numLines):
+        for index in range(0, numlines):
             f2.write(calibrations[index])
+
 
 def search_cal_file_for_referenced_cal_names():
 
@@ -83,7 +86,6 @@ def search_cal_file_for_referenced_cal_names():
                     if '.' not in str2:
                         continue
                     else:
-                        dot_index = str2.index(".")
                         header, str2 = str2.split('.', 1)
 
                     if cal_text_indexes != -1:
@@ -99,6 +101,8 @@ def search_cal_file_for_referenced_cal_names():
                     flag = 0  # found string in nested loop
             f0.write('NEXT_FILE\n')
     return cal_reference_array
+
+
 def size_columns_to_fit(worksheet):
     for ind, column in enumerate(worksheet.columns):
         max_length = 0
@@ -110,32 +114,32 @@ def size_columns_to_fit(worksheet):
             except:
                 pass
         if ind == 0:
-            adjusted_width = (max_length)# * 1.2
+            adjusted_width = max_length  # * 1.2
         else:
             adjusted_width = 14
         worksheet.column_dimensions[column_letter].width = adjusted_width
 
-def write_to_excel(cal_reference_array):
-    input_file = 'out.txt'
 
+def write_to_excel(cal_reference_array):
+
+    # Initializations vars needed for this function
+    input_file = 'out.txt'
     first_row_count = 0
     workbook = openpyxl.Workbook()
+    # worksheet1 = workbook.create_sheet('Calibrations',1)
     worksheet = workbook.worksheets[0]
-    #worksheet1 = workbook.create_sheet('Calibrations',1)
-    split_row = []
-    split_array_row = []
     split_array_rows = []
     array_cal_names = []
-    worksheet_names = []
     calibration_arrays = []
 
-    for i5,file in enumerate(files):
-        worksheet.cell(2, 2+i5, str(file))
+    # Populate top of sheet with file names
+    for i5, file in enumerate(files):
+        worksheet.cell(2, 2 + i5, str(file))
 
     with open(input_file, 'r') as data:  # read in text mode
         for index, row in enumerate(data.readlines()):
             if '/' in row:
-                worksheet.cell(1,1,row)
+                worksheet.cell(1, 1, row)
                 continue
             elif '.m' in row:
                 continue
@@ -145,7 +149,7 @@ def write_to_excel(cal_reference_array):
                 continue
             row = row.replace('=', '')
             row = row.replace(';', '')
-                    # Write cals that are not arrays (no brackets) into first page of Excel
+            # Write cals that are not arrays (no brackets) into first page of Excel
             if '[' and ']' in row:
                 # Find Calibrations that are arrays
                 row = row.replace('[', '')
@@ -163,7 +167,7 @@ def write_to_excel(cal_reference_array):
                 # Operations to be performed if cal is not an array
             else:
                 split_row = list(row.split())
-                if first_row_count < (len(cal_reference_array)- len(array_cal_names)):
+                if first_row_count < (len(cal_reference_array) - len(array_cal_names)):
                     worksheet.append(split_row)
                     first_row_count += 1
                 else:
@@ -171,12 +175,12 @@ def write_to_excel(cal_reference_array):
                         if 'c' or 'k' in item:
                             split_row.remove(item)
                             print(split_row)
-                            #for i0, file in enumerate(files):
-                                #worksheet.cell(2, 2+i0, file)
-                            #upper_range = len(cal_reference_array) - len(array_cal_names)
-                            #for i9 in range(0,upper_range):
-                                #print(split_row)
-                                #worksheet.cell(4+i9, 2, str(split_row))
+                            # for i0, file in enumerate(files):
+                            # worksheet.cell(2, 2+i0, file)
+                            # upper_range = len(cal_reference_array) - len(array_cal_names)
+                            # for i9 in range(0,upper_range):
+                            # print(split_row)
+                            # worksheet.cell(4+i9, 2, str(split_row))
                 size_columns_to_fit(worksheet)
 
         # Iterate over Cal names list and create sheet for each one
@@ -186,14 +190,13 @@ def write_to_excel(cal_reference_array):
             # Excel sheets can only have 31char length Titles
             if len(cal) > 31:
                 old_name = cal
-                short_cal = cal[:30]
                 workbook.create_sheet(title=cal[:30], index=(i + 1))
                 cal = old_name
             elif len(cal) <= 31:
-                workbook.create_sheet(title=cal, index=(i+1))
+                workbook.create_sheet(title=cal, index=(i + 1))
 
             worksheet_names = workbook.sheetnames
-            worksheet = workbook[worksheet_names[i+1]]
+            worksheet = workbook[worksheet_names[i + 1]]
             cal = [cal]
             empty_line = [' ']
             worksheet.append(cal)
@@ -205,12 +208,13 @@ def write_to_excel(cal_reference_array):
 
             for i2, array in enumerate(calibration_arrays[i]):
                 for i3, value in enumerate(array):
-                    worksheet.cell(row=3+i2, column=2+i3,value= value)
+                    worksheet.cell(row=3 + i2, column=2 + i3, value=value)
 
             size_columns_to_fit(worksheet)
         else:
             worksheet.insert_rows(index)
         workbook.save('Calibrations.xlsx')
+
 
 # Author: Cody Palmer
 # Last modified by: Cameron Floyd
@@ -241,7 +245,7 @@ for subdir, dirs, files in os.walk(rootdir):
             continue
         elif str(inputFile).endswith('.txt'):
             continue
-        elif str(inputFile).endswith('.m') != True:
+        elif str(inputFile).endswith('.m') is not True:
             wrong_file_counter += 1
             continue
 
@@ -278,7 +282,3 @@ write_to_excel(cal_reference_array)
 
 print(f"\nAll Finished. Your calibrations are found in Calibration.xslx in the same folder as this .py file.\n"
       f"{wrong_file_counter} files in that folder were not .m files and were not read.")
-
-
-
-
