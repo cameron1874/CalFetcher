@@ -33,7 +33,7 @@ def setup_out_file():
 
     with open(outFile, 'w+') as f4:
         datestamp = datetime.datetime.now()
-        date_time = datestamp.strftime("%m/%d/%Y, %H:%M:%S\n")
+        date_time = datestamp.strftime("%m/%d/%Y___%H:%M:%S\n")
         f4.write(date_time)
 
 def multi_line_cal_to_single_line(calibrations, numLines):
@@ -68,7 +68,7 @@ def search_cal_file_for_referenced_cal_names():
     array = []
     with open(outFile, 'a') as f0:
         with open(referenceFile, 'r') as f2:
-            f0.write('Data based on input file: ' + inputFile + '\n\n')
+            f0.write('Data_based_on_input_file: ' + inputFile + '\n\n')
             for index in f2:
                 cal_names = index.splitlines()
                 for index2 in range(0, sum(1 for line in cals_text) - 1):
@@ -94,6 +94,23 @@ def search_cal_file_for_referenced_cal_names():
                 else:
                     flag = 0  # found string in nested loop
             f0.write('\n\n\n')
+
+def size_columns_to_fit(worksheet):
+    for ind, column in enumerate(worksheet.columns):
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        if ind == 0:
+            adjusted_width = (max_length)# * 1.2
+        else:
+            adjusted_width = 10
+        worksheet.column_dimensions[column_letter].width = adjusted_width
+
 def write_to_excel():
     input_file = 'out.txt'
 
@@ -102,8 +119,10 @@ def write_to_excel():
     #worksheet1 = workbook.create_sheet('Calibrations',1)
     split_row = []
     split_array_row = []
+    split_array_rows = []
     array_cal_names = []
     worksheet_names = []
+    calibration_index = []
 
     with open(input_file, 'r') as data:  # read in text mode
         for index, row in enumerate(data.readlines()):
@@ -114,6 +133,7 @@ def write_to_excel():
                 if '[' and ']' not in row:
                     split_row = list(row.split())
                     worksheet.append(split_row)
+                    size_columns_to_fit(worksheet)
                 else:
                     # Find Calibrations that are arrays
                     row = row.replace('[', '')
@@ -126,7 +146,11 @@ def write_to_excel():
                     else:
                         array_cal_names.append(split_array_row[0])
                     del split_array_row[0]
+                    split_array_rows.append(split_array_row)
+
+        # Iterate over Cal names list and create sheet for each one
         for i, cal in enumerate(array_cal_names):
+            # Excel sheets can only have 31char length Titles
             if len(cal) > 31:
                 old_name = cal
                 short_cal = cal[:30]
@@ -137,8 +161,18 @@ def write_to_excel():
             worksheet_names = workbook.get_sheet_names()
             worksheet = workbook[worksheet_names[i+1]]
             cal = [cal]
+            empty_line = [' ']
             worksheet.append(cal)
-            print(worksheet_names)
+            worksheet.append(empty_line)
+
+
+
+
+            for ind, filename in enumerate(files):
+                filename = [filename]
+                worksheet.append(filename)
+
+            size_columns_to_fit(worksheet)
         else:
             worksheet.insert_rows(index)
         workbook.save('Calibrations.xlsx')
