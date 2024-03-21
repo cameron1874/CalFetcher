@@ -33,9 +33,10 @@ def setup_out_file():
 
     with open(outFile, 'w+') as f5:
         datestamp = datetime.datetime.now()
-        date_time = datestamp.strftime("%m/%d/%Y___%H:%M:%S\n")
-        f5.write(date_time)
-
+        date = datestamp.strftime("%m/%d/%Y")
+        time = datestamp.strftime('%H:%M:%S\n')
+        f5.write(date + time)
+    return date, time
 
 def multi_line_cal_to_single_line(calibrations, numlines):
     for index in range(numlines, 0, -1):
@@ -104,9 +105,10 @@ def search_cal_file_for_referenced_cal_names():
                     else:
                         flag = 0
                 if flag < 1:  # not found
-                    cal_not_found_message = str(cal_full_names[0] + ' \tNOT_FOUND\n')
-                    cal_array_per_file.append(cal_not_found_message)
-                    f0.write(cal_not_found_message)
+                    cal_not_found_message_for_file = str(cal_full_names[0] + '=\tNOT_FOUND\n')
+                    cal_not_found_message_for_list = str(cal_full_names[0] + '=NOT_FOUND')
+                    cal_array_per_file.append(cal_not_found_message_for_list)
+                    f0.write(cal_not_found_message_for_file)
                     array.append(cal_full_names[0])
                 else:
                     flag = 0  # found string in nested loop
@@ -131,7 +133,7 @@ def size_columns_to_fit(worksheet):
         worksheet.column_dimensions[column_letter].width = adjusted_width
 
 
-def write_to_excel(cal_reference_array):
+def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time):
 
     # Initializations vars needed for this function
     input_file = 'out.txt'
@@ -139,14 +141,74 @@ def write_to_excel(cal_reference_array):
     workbook = openpyxl.Workbook()
     # worksheet1 = workbook.create_sheet('Calibrations',1)
     worksheet = workbook.worksheets[0]
+
+    array_indexes_all_files = []
+    cal_arrays_inc_not_found = []
+    array_of_scalar_cals = []
     split_array_rows = []
     array_cal_names = []
     calibration_arrays = []
 
     # Populate top of sheet with file names
-    for i5, file in enumerate(files):
-        worksheet.cell(2, 2 + i5, str(file))
+    for i0, file in enumerate(files):
+        worksheet.cell(2, 2 + i0, str(file))
 
+    # Populate top of sheet with date and time
+    worksheet.cell(1, 1, date)
+    worksheet.cell(1, 2, time)
+
+    # Loop through list of cal lists to find array cals, make list of indexes of array cals for each file
+    for i1, cal_array_per_m_file in enumerate(array_of_all_file_cal_arrays):
+        array_indexes_per_file = []
+        for i2, calibration in enumerate(cal_array_per_m_file):
+            #calibration = calibration.replace('=', '')
+            #calibration = calibration.replace(';', '')
+            if '[' and ']' in calibration:
+                array_indexes_per_file.append(i2)
+        array_indexes_all_files.append(array_indexes_per_file)
+
+    # Find longest list of array cals (most will be the same as longest, this is to get
+    # index values so calibrations that are NOT_FOUND at those same indexes can be included
+    max_list = max(array_indexes_all_files, key=len)
+
+    #array_of_scalar_cals = array_of_all_file_cal_arrays
+    for cal_array_per_m_file in array_of_all_file_cal_arrays:
+        temp_cal_array = cal_array_per_m_file
+        for i2, cal in enumerate(cal_array_per_m_file):
+            for item in max_list:
+                if i2 == item:
+                    cal_arrays_inc_not_found.append(cal)
+                    temp_cal_array.remove(cal)
+        array_of_scalar_cals.append(temp_cal_array)
+    #print(cal_arrays_inc_not_found)
+    print(array_of_scalar_cals)
+
+
+
+
+
+
+
+
+    """calibration = calibration.replace('[', '')
+                calibration = calibration.replace(']', '')
+
+                split_calibration_array = list(calibration.split())
+                # Save name of cal that is an array to list array_cal_names if it is not in list already
+                # then delete it from split_array_row var
+                array_of_arrays_minus_array_cals = [array_of_all_file_cal_arrays]
+                if split_calibration_array[0] in array_cal_names:
+                    pass
+                else:
+                    array_cal_names.append(split_calibration_array[0])
+                del split_calibration_array[0]
+                split_array_rows.append(split_calibration_array)
+            print(split_array_rows)"""
+
+
+
+
+    """
     with open(input_file, 'r') as data:  # read in text mode
         for index, row in enumerate(data.readlines()):
             if '/' in row:
@@ -192,9 +254,9 @@ def write_to_excel(cal_reference_array):
                             # for i9 in range(0,upper_range):
                             # print(split_row)
                             # worksheet.cell(4+i9, 2, str(split_row))
-                size_columns_to_fit(worksheet)
+                size_columns_to_fit(worksheet)"""
 
-        # Iterate over Cal names list and create sheet for each one
+    """ # Iterate over Cal names list and create sheet for each one
         for i, cal in enumerate(array_cal_names):
             calibration_arrays.append(split_array_rows[i::len(array_cal_names)])
 
@@ -223,8 +285,8 @@ def write_to_excel(cal_reference_array):
 
             size_columns_to_fit(worksheet)
         else:
-            worksheet.insert_rows(index)
-        workbook.save('Calibrations.xlsx')
+            worksheet.insert_rows(index)"""
+    workbook.save('Calibrations.xlsx')
 
 
 # Author: Cody Palmer
@@ -249,7 +311,7 @@ referenceFile = 'references.txt'
 array_of_all_file_cal_arrays = []
 
 # create/overwrite output file and add timedate to the top
-setup_out_file()
+date, time = setup_out_file()
 
 # loop to iterate through files in selected folder
 for subdir, dirs, files in os.walk(rootdir):
@@ -293,9 +355,9 @@ for subdir, dirs, files in os.walk(rootdir):
         array_of_all_file_cal_arrays.append(cal_array_per_file)
 
 
-    print((array_of_all_file_cal_arrays))
 
-write_to_excel(cal_reference_array)
+write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time)
+
 
 print(f"\nAll Finished. Your calibrations are found in Calibration.xslx in the same folder as this .py file.\n"
       f"{wrong_file_counter} files in that folder were not .m files and were not read.")
