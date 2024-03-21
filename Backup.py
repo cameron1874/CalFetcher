@@ -70,7 +70,7 @@ def write_calibrations_file(calibrations, numlines):
 def search_cal_file_for_referenced_cal_names():
 
     cal_reference_array = []
-    all_stripped_cal_names_per_file = []
+    cal_array_per_file = []
     cal_names = []
     array = []
 
@@ -98,20 +98,20 @@ def search_cal_file_for_referenced_cal_names():
                         else:
                             cal_names.append(split_str2[0])
                         f0.write(str2)
-                        all_stripped_cal_names_per_file.append(str2)
+                        cal_array_per_file.append(str2)
                         flag = 1
                         break
                     else:
                         flag = 0
                 if flag < 1:  # not found
-                    #all_stripped_cal_names_per_file.append()
-                    f0.write(cal_full_names[0] + '\tNOT_FOUND\n')
+                    cal_not_found_message = str(cal_full_names[0] + ' \tNOT_FOUND\n')
+                    cal_array_per_file.append(cal_not_found_message)
+                    f0.write(cal_not_found_message)
                     array.append(cal_full_names[0])
                 else:
                     flag = 0  # found string in nested loop
             f0.write('NEXT_FILE\n')
-        #print(all_stripped_cal_names_per_file)
-    return cal_reference_array, cal_names
+    return cal_reference_array, cal_names, cal_array_per_file
 
 
 def size_columns_to_fit(worksheet):
@@ -246,6 +246,8 @@ calibrationTxtFile = 'calibrations.txt'
 outFile = 'out.txt'
 referenceFile = 'references.txt'
 
+array_of_all_file_cal_arrays = []
+
 # create/overwrite output file and add timedate to the top
 setup_out_file()
 
@@ -287,10 +289,11 @@ for subdir, dirs, files in os.walk(rootdir):
             cals_text = f3.readlines()
 
         # search for references
-        cal_reference_array, cal_names = search_cal_file_for_referenced_cal_names()
+        cal_reference_array, cal_names, cal_array_per_file = search_cal_file_for_referenced_cal_names()
+        array_of_all_file_cal_arrays.append(cal_array_per_file)
 
 
-    print(cal_names)
+    print((array_of_all_file_cal_arrays))
 
 write_to_excel(cal_reference_array)
 
