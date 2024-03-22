@@ -1,11 +1,9 @@
 import shutil
-# import numpy
 import datetime
 import os
-# from tkinter import Tk
 from tkinter.filedialog import askdirectory
-# import xlsxwriter as xl
 import openpyxl
+import PySimpleGUI as sg
 
 
 def remove_values_from_list(the_list, val):
@@ -278,108 +276,6 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
                 except:
                     pass
                 worksheet.cell(4+i11, 2+i12, array_cal_value)
-
-
-
-
-
-
-    """calibration = calibration.replace('[', '')
-                calibration = calibration.replace(']', '')
-
-                split_calibration_array = list(calibration.split())
-                # Save name of cal that is an array to list array_cal_names if it is not in list already
-                # then delete it from split_array_row var
-                array_of_arrays_minus_array_cals = [array_of_all_file_cal_arrays]
-                if split_calibration_array[0] in array_cal_names:
-                    pass
-                else:
-                    array_cal_names.append(split_calibration_array[0])
-                del split_calibration_array[0]
-                split_array_rows.append(split_calibration_array)
-            print(split_array_rows)"""
-
-
-
-
-    """
-    with open(input_file, 'r') as data:  # read in text mode
-        for index, row in enumerate(data.readlines()):
-            if '/' in row:
-                worksheet.cell(1, 1, row)
-                continue
-            elif '.m' in row:
-                continue
-            elif len(row) < 2:
-                row = [row]
-                worksheet.append(row)
-                continue
-            row = row.replace('=', '')
-            row = row.replace(';', '')
-            # Write cals that are not arrays (no brackets) into first page of Excel
-            if '[' and ']' in row:
-                # Find Calibrations that are arrays
-                row = row.replace('[', '')
-                row = row.replace(']', '')
-                split_array_row = list(row.split())
-                # Save name of cal that is an array to list array_cal_names if it is not in list already
-                # then delete it from split_array_row var
-                if split_array_row[0] in array_cal_names:
-                    pass
-                else:
-                    array_cal_names.append(split_array_row[0])
-                del split_array_row[0]
-                split_array_rows.append(split_array_row)
-
-                # Operations to be performed if cal is not an array
-            else:
-                split_row = list(row.split())
-                if first_row_count < (len(cal_reference_array) - len(array_cal_names)):
-                    worksheet.append(split_row)
-                    first_row_count += 1
-                else:
-                    for item in split_row:
-                        if 'c' or 'k' in item:
-                            split_row.remove(item)
-                            #print(split_row)
-                            # for i0, file in enumerate(files):
-                            # worksheet.cell(2, 2+i0, file)
-                            # upper_range = len(cal_reference_array) - len(array_cal_names)
-                            # for i9 in range(0,upper_range):
-                            # print(split_row)
-                            # worksheet.cell(4+i9, 2, str(split_row))
-                size_columns_to_fit(worksheet)"""
-
-    """ # Iterate over Cal names list and create sheet for each one
-        for i, cal in enumerate(array_cal_names):
-            calibration_arrays.append(split_array_rows[i::len(array_cal_names)])
-
-            # Excel sheets can only have 31char length Titles
-            if len(cal) > 31:
-                old_name = cal
-                workbook.create_sheet(title=cal[:30], index=(i + 1))
-                cal = old_name
-            elif len(cal) <= 31:
-                workbook.create_sheet(title=cal, index=(i + 1))
-
-            worksheet_names = workbook.sheetnames
-            worksheet = workbook[worksheet_names[i + 1]]
-            cal = [cal]
-            empty_line = [' ']
-            worksheet.append(cal)
-            worksheet.append(empty_line)
-
-            for ind, filename in enumerate(files):
-                filename = [filename]
-                worksheet.append(filename)
-
-            for i2, array in enumerate(calibration_arrays[i]):
-                for i3, value in enumerate(array):
-                    worksheet.cell(row=3 + i2, column=2 + i3, value=value)
-
-            size_columns_to_fit(worksheet)
-        else:
-            worksheet.insert_rows(index)"""
     workbook.save('Calibrations.xlsx')
 
 
