@@ -139,19 +139,23 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
     input_file = 'out.txt'
     first_row_count = 0
     workbook = openpyxl.Workbook()
-    # worksheet1 = workbook.create_sheet('Calibrations',1)
+    # worksheet1 = workbook.name('Calibrations',1)
     worksheet = workbook.worksheets[0]
-
+    worksheet.title = 'Scalar Cals'
     array_indexes_all_files = []
     cal_arrays_inc_not_found = []
     array_of_scalar_cals = []
+    scalar_cal_arrays_values_only = []
+    scalar_cal_values_only = []
+    scalar_cal_names = []
     split_array_rows = []
     array_cal_names = []
     calibration_arrays = []
+    loop_counter = 0
 
     # Populate top of sheet with file names
     for i0, file in enumerate(files):
-        worksheet.cell(2, 2 + i0, str(file))
+        worksheet.cell(3, 2 + i0, str(file))
 
     # Populate top of sheet with date and time
     worksheet.cell(1, 1, date)
@@ -170,18 +174,51 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
     # Find longest list of array cals (most will be the same as longest, this is to get
     # index values so calibrations that are NOT_FOUND at those same indexes can be included
     max_list = max(array_indexes_all_files, key=len)
+    # Sort list in descending order so when we remove from those indexes, numbers don't shift
+    max_list.sort(reverse=True)
 
-    #array_of_scalar_cals = array_of_all_file_cal_arrays
+    # Remove cals corresponding to cal arrays, using indexes collected above
+    # Assemble list containing only scalar cals
     for cal_array_per_m_file in array_of_all_file_cal_arrays:
         temp_cal_array = cal_array_per_m_file
-        for i2, cal in enumerate(cal_array_per_m_file):
-            for item in max_list:
-                if i2 == item:
+        # Enumerate backwards so index counts down and removes from high index first
+        for i2, cal in reversed(list(enumerate(cal_array_per_m_file))):
+            for i3, value in enumerate(max_list):
+                if int(i2) == int(value):
                     cal_arrays_inc_not_found.append(cal)
-                    temp_cal_array.remove(cal)
+                    temp_cal_array.pop(i2)
+                    loop_counter += 1
+                    # Lots of m files to go through but only need to remove indexes from cal names once
+                    if loop_counter <= len(max_list):
+                        cal_names.pop(i2)
         array_of_scalar_cals.append(temp_cal_array)
-    #print(cal_arrays_inc_not_found)
-    print(array_of_scalar_cals)
+
+    # Split values for scalar cals off into their own list
+    for scalar_cal_array in array_of_scalar_cals:
+        scalar_temp_array_per_file = []
+        for scalar_cal in scalar_cal_array:
+            scalar_cal = scalar_cal.replace('\n', '')
+            scalar_cal = scalar_cal.replace(';', '')
+            split_scalar = scalar_cal.split('=')
+            for item in split_scalar:
+                item = item.replace('=', '')
+                item.strip()
+            scalar_temp_array_per_file.append(split_scalar[-1])
+        scalar_cal_arrays_values_only.append(scalar_temp_array_per_file)
+
+    # Populate Cal names into first column of first sheet
+    for i4, cal_name in enumerate(cal_names):
+        worksheet.cell(5+i4, 1, cal_name)
+
+    # Populate scalar cal values into first sheet
+    for i5, array_of_scalar_cal_values in enumerate(scalar_cal_arrays_values_only):
+        for i6, scalar_cal_value in enumerate(array_of_scalar_cal_values):
+            try:
+                scalar_cal_value = round(float(scalar_cal_value),4)
+            except:
+                pass
+            worksheet.cell(5+i6, 2+i5, scalar_cal_value)
+    size_columns_to_fit(worksheet)
 
 
 
