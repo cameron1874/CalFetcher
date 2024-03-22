@@ -145,7 +145,12 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
     array_indexes_all_files = []
     cal_arrays_inc_not_found = []
     array_of_scalar_cals = []
+    array_of_array_cals = []
+    array_cal_names = []
+    array_of_arrays_of_cals = []
     scalar_cal_arrays_values_only = []
+    array_cal_arrays_values_only = []
+    array_values_organized_by_name = []
     scalar_cal_values_only = []
     scalar_cal_names = []
     split_array_rows = []
@@ -178,7 +183,8 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
     max_list.sort(reverse=True)
 
     # Remove cals corresponding to cal arrays, using indexes collected above
-    # Assemble list containing only scalar cals
+    # Assemble list containing only scalar cals, assemble list containing only array cals
+    scalar_cal_names = cal_names
     for cal_array_per_m_file in array_of_all_file_cal_arrays:
         temp_cal_array = cal_array_per_m_file
         # Enumerate backwards so index counts down and removes from high index first
@@ -190,8 +196,12 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
                     loop_counter += 1
                     # Lots of m files to go through but only need to remove indexes from cal names once
                     if loop_counter <= len(max_list):
-                        cal_names.pop(i2)
+                        array_cal_names.append(scalar_cal_names[i2])
+                        scalar_cal_names.pop(i2)
         array_of_scalar_cals.append(temp_cal_array)
+        array_of_array_cals.append(cal_arrays_inc_not_found)
+        cal_arrays_inc_not_found = []
+    array_cal_names.reverse()
 
     # Split values for scalar cals off into their own list
     for scalar_cal_array in array_of_scalar_cals:
@@ -206,21 +216,68 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
             scalar_temp_array_per_file.append(split_scalar[-1])
         scalar_cal_arrays_values_only.append(scalar_temp_array_per_file)
 
+
+    # Split Values for array cals off into their own list
+    for array_cal_array in array_of_array_cals:
+        #array_temp_array_per_file = []
+        for array_cal in array_cal_array:
+            array_cal = array_cal.replace('\n', '')
+            array_cal = array_cal.replace(';', '')
+            split_array_cal = array_cal.split('=')
+            for thing in split_array_cal:
+                thing = thing.replace('=', '')
+                thing.strip()
+            array_of_arrays_of_cals.append(split_array_cal[-1])
+
+    # Take every nth element from list of array values and sort by cal name into new lists
+    for i4,cal_name in enumerate(array_cal_names):
+        array_values_organized_by_name.append(array_of_arrays_of_cals[i4::len(array_cal_names)])
+
     # Populate Cal names into first column of first sheet
-    for i4, cal_name in enumerate(cal_names):
-        worksheet.cell(5+i4, 1, cal_name)
+    for i5, cal_name in enumerate(scalar_cal_names):
+        worksheet.cell(5+i5, 1, cal_name)
 
     # Populate scalar cal values into first sheet
-    for i5, array_of_scalar_cal_values in enumerate(scalar_cal_arrays_values_only):
-        for i6, scalar_cal_value in enumerate(array_of_scalar_cal_values):
+    for i6, array_of_scalar_cal_values in enumerate(scalar_cal_arrays_values_only):
+        for i7, scalar_cal_value in enumerate(array_of_scalar_cal_values):
             try:
                 scalar_cal_value = round(float(scalar_cal_value),4)
             except:
                 pass
-            worksheet.cell(5+i6, 2+i5, scalar_cal_value)
+            worksheet.cell(5+i7, 2+i6, scalar_cal_value)
     size_columns_to_fit(worksheet)
 
+    # Create a new sheet for each array cal name
+    for i8, array_cal_name in enumerate(array_cal_names):
+        # Excel sheets can only have 31char length titles, cut down if too long
+        if len(array_cal_name) > 31:
+            workbook.create_sheet(title=array_cal_name[:30], index=(i8 + 1))
+        else:
+            workbook.create_sheet(title=array_cal_name, index=(i8 + 1))
+        worksheet_names = workbook.sheetnames
+        worksheet = workbook[worksheet_names[i8 + 1]]
+        # Put cal name at top of sheet
+        worksheet.cell(1,1, array_cal_name)
+        # Put file names in first column of sheet and resize columns to fit
+        for i9, file in enumerate(files):
+            worksheet.cell(4+i9,1, file)
+        size_columns_to_fit(worksheet)
 
+    # Populate sheets with array data
+    for i10, array_of_arrays in enumerate(array_values_organized_by_name):
+        worksheet = workbook[worksheet_names[i10 + 1]]
+        for i11, array in enumerate(array_of_arrays):
+            array = array.replace('[', '')
+            array = array.replace(']', '')
+            array = array.strip()
+            cal_array_split_into_values = array.split()
+            print(cal_array_split_into_values)
+            for i12, array_cal_value in enumerate(cal_array_split_into_values):
+                try:
+                    array_cal_value = round(float(array_cal_value), 4)
+                except:
+                    pass
+                worksheet.cell(4+i11, 2+i12, array_cal_value)
 
 
 
