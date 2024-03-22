@@ -3,7 +3,6 @@ import datetime
 import os
 from tkinter.filedialog import askdirectory
 import openpyxl
-import PySimpleGUI as sg
 
 
 def remove_values_from_list(the_list, val):
@@ -92,12 +91,13 @@ def search_cal_file_for_referenced_cal_names():
 
                     if cal_text_indexes != -1:
                         # Make array containing all cleaned up cal names
-                        if split_str2[0] in cal_names:
-                            pass
-                        else:
+                        if split_str2[0] not in cal_names:
                             cal_names.append(split_str2[0])
+                        # Write to out.txt
                         f0.write(str2)
-                        cal_array_per_file.append(str2)
+                        # Cal names and values per file
+                        if str2 not in cal_array_per_file:
+                            cal_array_per_file.append(str2)
                         flag = 1
                         break
                     else:
@@ -269,7 +269,6 @@ def write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time
             array = array.replace(']', '')
             array = array.strip()
             cal_array_split_into_values = array.split()
-            print(cal_array_split_into_values)
             for i12, array_cal_value in enumerate(cal_array_split_into_values):
                 try:
                     array_cal_value = round(float(array_cal_value), 4)
@@ -349,5 +348,6 @@ for subdir, dirs, files in os.walk(rootdir):
 write_to_excel(cal_reference_array, array_of_all_file_cal_arrays, date, time)
 
 
-print(f"\nAll Finished. Your calibrations are found in Calibration.xslx in the same folder as this .py file.\n"
-      f"{wrong_file_counter} files in that folder were not .m files and were not read.")
+print(f"\nAll Finished. Your calibrations are found in Calibration.xslx in the same folder as this .py file.\n")
+if wrong_file_counter != 0:
+    print(f"{wrong_file_counter} files in that folder were not .m files and were not read.")
