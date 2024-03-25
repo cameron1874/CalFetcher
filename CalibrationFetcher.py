@@ -147,10 +147,6 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
     array_cal_names = []
     loop_counter = 0
 
-    # Populate top of sheet with file names
-    for i0, file in enumerate(files):
-        worksheet.cell(3, 2 + i0, str(file))
-
     # Populate top of sheet with date and time
     worksheet.cell(1, 1, date)
     worksheet.cell(1, 2, time)
@@ -218,20 +214,24 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
     for i4, cal_name in enumerate(array_cal_names):
         array_values_organized_by_name.append(array_of_arrays_of_cals[i4::len(array_cal_names)])
 
-    # Populate Cal names into first column of first sheet
+    # Populate cal names into first column of first sheet
     for i5, cal_name in enumerate(scalar_cal_names):
         worksheet.cell(5+i5, 1, cal_name)
 
-    # Populate scalar cal values into first sheet
+    # Populate File names and scalar cal values into first sheet, if there are scalar values
     if len(scalar_cal_names) == 0:
         worksheet.cell(5,1, 'NO SCALAR CALIBRATIONS FOUND')
-    for i6, array_of_scalar_cal_values in enumerate(scalar_cal_arrays_values_only):
-        for i7, scalar_cal_value in enumerate(array_of_scalar_cal_values):
-            try:
-                scalar_cal_value = round(float(scalar_cal_value), 4)
-            except:
-                pass
-            worksheet.cell(5+i7, 2+i6, scalar_cal_value)
+        worksheet.cell(6,1,'ARRAY CALS FOUND IN FOLLOWING SHEETS')
+    else:
+        for i0, file in enumerate(files):
+            worksheet.cell(3, 2 + i0, str(file))
+        for i6, array_of_scalar_cal_values in enumerate(scalar_cal_arrays_values_only):
+            for i7, scalar_cal_value in enumerate(array_of_scalar_cal_values):
+                try:
+                    scalar_cal_value = round(float(scalar_cal_value), 4)
+                except:
+                    pass
+                worksheet.cell(5+i7, 2+i6, scalar_cal_value)
     size_columns_to_fit(worksheet)
 
     # Create a new sheet for each array cal name
@@ -245,6 +245,7 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
         worksheet = workbook[worksheet_names[i8 + 1]]
         # Put cal name at top of sheet
         worksheet.cell(1, 1, array_cal_name)
+        worksheet.cell(2,1,'INDEX:')
         # Put file names in first column of sheet and resize columns to fit
         for i9, file in enumerate(files):
             worksheet.cell(4+i9, 1, file)
@@ -259,6 +260,8 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
             array = array.strip()
             cal_array_split_into_values = array.split()
             for i12, array_cal_value in enumerate(cal_array_split_into_values):
+                if i11 == 0:
+                    worksheet.cell(2, 2+i12, int(i12))
                 try:
                     array_cal_value = round(float(array_cal_value), 4)
                 except:
