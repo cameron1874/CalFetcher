@@ -31,8 +31,8 @@ def setup_out_file():
     with open(outFile, 'w+') as f5:
         datestamp = datetime.datetime.now()
         date = datestamp.strftime("%m/%d/%Y")
-        time = datestamp.strftime('%H:%M:%S\n')
-        f5.write(date + time)
+        time = datestamp.strftime('%H:%M:%S\n\n')
+        f5.write(date + '   ' + time)
     return date, time
 
 
@@ -110,7 +110,7 @@ def search_cal_file_for_referenced_cal_names():
                     array.append(cal_full_names[0])
                 else:
                     flag = 0  # found string in nested loop
-            f0.write('NEXT_FILE\n')
+            f0.write('\nNEXT_FILE\n\n')
     return cal_names, cal_array_per_file
 
 
@@ -271,7 +271,7 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
 
 
 # Author: Cody Palmer
-# Last modified by: Cameron Floyd
+# Updated by: Cameron Floyd
 # Last modified Date: 3-22-2024
 
 
