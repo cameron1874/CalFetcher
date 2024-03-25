@@ -276,7 +276,6 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
 
 
 root_dir = askdirectory(title='Select Folder that Contains your .m Files')
-
 wrong_file_counter = 0
 
 ### File Preparation ###
@@ -339,3 +338,4 @@ write_to_excel(arrays_of_all_file_cal_arrays, date_, time_)
 print(f"\nAll Finished. Your calibrations are found in Calibration.xslx in the same folder as this .py file.\n")
 if wrong_file_counter != 0:
     print(f"{wrong_file_counter} files in that folder were not .m files and were not read.")
+os.system("start EXCEL.EXE Calibrations.xlsx")
