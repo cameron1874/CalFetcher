@@ -3,6 +3,7 @@ import datetime
 import os
 from tkinter.filedialog import askdirectory
 import openpyxl
+import PySimpleGUI as Sg
 
 
 def remove_values_from_list(the_list, val):
@@ -213,6 +214,7 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
     # Take every nth element from list of array values and sort by cal name into new lists
     for i4, cal_name in enumerate(array_cal_names):
         array_values_organized_by_name.append(array_of_arrays_of_cals[i4::len(array_cal_names)])
+    array_values_organized_by_name.reverse()
 
     # Populate cal names into first column of first sheet
     for i5, cal_name in enumerate(scalar_cal_names):
@@ -274,8 +276,9 @@ def write_to_excel(array_of_all_file_cal_arrays, date, time):
 # Updated by: Cameron Floyd
 # Last modified Date: 3-22-2024
 
+Sg.popup_quick_message("Select the folder that contains your .m files")
+root_dir = askdirectory()
 
-root_dir = askdirectory(title='Select Folder that Contains your .m Files')
 wrong_file_counter = 0
 
 ### File Preparation ###
